@@ -1,245 +1,216 @@
-/* ===================================================================
- * Imminent 1.0.0 - Main JS
- *
- * ------------------------------------------------------------------- */
+/* ============================================================
+   CHARLES RUAN — personal site
+   Vanilla JS: beacon-gold route line, theme toggle, reveals,
+   stat counters, nav highlight, hero parallax. No dependencies.
+   ============================================================ */
+(function () {
+  "use strict";
 
-(function($) {
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    "use strict";
-    
-    const cfg = {
-                scrollDuration : 800, // smoothscroll duration
-                mailChimpURL   : 'https://facebook.us8.list-manage.com/subscribe/post?u=cdb7b577e41181934ed6a6a44&amp;id=e6957d85dc' // mailchimp url
-                };
-    const $WIN = $(window);
+  /* ---------- theme toggle ------------------------------------------- */
 
-    // Add the User Agent to the <html>
-    // will be used for IE10/IE11 detection (Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; rv:11.0))
-    const doc = document.documentElement;
-    doc.setAttribute('data-useragent', navigator.userAgent);
+  var root = document.documentElement;
+  var toggle = document.getElementById("theme-toggle");
 
+  function syncToggle() {
+    var dark = root.getAttribute("data-theme") === "dark";
+    toggle.textContent = dark ? "☀" : "☾";
+    toggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+  }
+  toggle.addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    syncToggle();
+  });
+  syncToggle();
 
-   /* preloader
-    * -------------------------------------------------- */
-    const ssPreloader = function() {
+  /* ---------- beacon-gold route line ---------------------------------
+     Collects .route-node markers, connects them with a 45°-bend path
+     (runner-vision style), and draws it in as you scroll. A dashed
+     ghost shows the route ahead. Desktop only (hidden via CSS <900px).
+  -------------------------------------------------------------------- */
 
-        $("html").addClass('ss-preload');
+  var NS = "http://www.w3.org/2000/svg";
+  var layer = document.getElementById("route-layer");
+  var route = { segs: [], total: 0, drawPath: null, dots: [] };
 
-        $WIN.on('load', function() {
+  function buildRoute() {
+    if (window.innerWidth < 900) { layer.innerHTML = ""; return; }
 
-            // force page scroll position to top at page refresh
-            // $('html, body').animate({ scrollTop: 0 }, 'normal');
+    var docH = document.documentElement.scrollHeight;
+    var docW = document.documentElement.clientWidth;
+    var sy = window.scrollY, sx = window.scrollX;
 
-            // will first fade out the loading animation 
-            $("#loader").fadeOut("slow", function() {
-                // will fade out the whole DIV that covers the website.
-                $("#preloader").delay(300).fadeOut("slow");
-            }); 
-            
-            // for hero content animations 
-            $("html").removeClass('ss-preload');
-            $("html").addClass('ss-loaded');
+    var pts = [];
+    document.querySelectorAll(".route-node").forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      pts.push({ x: r.left + sx + r.width / 2, y: r.top + sy + r.height / 2 });
+    });
+    pts.sort(function (a, b) { return a.y - b.y; });
+    if (pts.length < 2) { layer.innerHTML = ""; return; }
 
-        });
-    };
-
-
-   /* pretty print
-    * -------------------------------------------------- */
-    const ssPrettyPrint = function() {
-        $('pre').addClass('prettyprint');
-        $( document ).ready(function() {
-            prettyPrint();
-        });
-    };
-
-
-   /* slick slider
-    * ------------------------------------------------------ */
-    const ssSlickSlider = function() {
-            
-        $('.intro-slider').slick({
-            arrows: false,
-            dots: false,
-            autoplay: true,
-            autoplaySpeed: 3000,
-            fade: true,
-            speed: 3000
-        });
-    };
-
-
-   /* modal
-    * ---------------------------------------------------- */ 
-    const ssModal = function() {
-
-        const modal = document.querySelector(".modal");
-        const trigger = document.querySelector(".modal-trigger");
-        const closeButton = document.querySelector(".modal__close");
-
-        function toggleModal() {
-            modal.classList.toggle("show-modal");
-        }
-        function windowOnClick(event) {
-            if (event.target === modal) {
-                toggleModal();
-            }
-        }
-        function pressEsc(event) {
-            if (event.which=='27') {
-                modal.classList.remove("show-modal");
-            }
-        }
-
-        trigger.addEventListener("click", toggleModal);
-        closeButton.addEventListener("click", toggleModal);
-        window.addEventListener("click", windowOnClick);
-        window.addEventListener("keyup", pressEsc);
-
-    };
-
-
-   /* final countdown
-    * ------------------------------------------------------ */
-    const ssFinalCountdown = function() {
-
-        const finalDate = '2022/04/07';
-
-        $('.counter').countdown(finalDate)
-        .on('update.countdown finish.countdown', function(event) {
-
-            const str = '<div class=\"counter__time days\">%D&nbsp;<span>D</span></div>' +
-                        '<div class=\"counter__time hours\">%H&nbsp;<span>H</span></div>' +
-                        '<div class=\"counter__time minutes\">%M&nbsp;<span>M</span></div>' +
-                        '<div class=\"counter__time seconds\">%S&nbsp;<span>S</span></div>';
-                    
-            $(this).html(event.strftime(str));
-
-        });
-    };
-
-
-   /* tabs
-    * ---------------------------------------------------- */ 
-    const ssTabs = function() {
-
-        const $tabNavListItems = $("ul.tab-nav__list li");
-        const $tabContentItem  = $(".tab-content__item");
-
-        $tabContentItem.hide().first().show();
-
-        $tabNavListItems.on('click', function () {
-
-            $tabNavListItems.removeClass("active");
-            $(this).addClass("active");
-            $tabContentItem.hide();
-
-            const activeTab = $(this).attr("data-id");
-            $("#" + activeTab).fadeIn(1000);
-
-        });
+    // Expand into path points with 45° bends between markers
+    var path = [pts[0]];
+    for (var i = 1; i < pts.length; i++) {
+      var p0 = path[path.length - 1], p1 = pts[i];
+      var dx = Math.abs(p1.x - p0.x);
+      if (dx > 4 && p1.y - dx > p0.y + 4) {
+        path.push({ x: p0.x, y: p1.y - dx }); // vertical run, then 45° diagonal
+      }
+      path.push(p1);
     }
 
+    var d = "M " + path[0].x + " " + path[0].y;
+    var segs = [], total = 0;
+    for (var j = 1; j < path.length; j++) {
+      var a = path[j - 1], b = path[j];
+      var len = Math.hypot(b.x - a.x, b.y - a.y);
+      segs.push({ y0: a.y, y1: b.y, start: total, len: len });
+      total += len;
+      d += " L " + b.x + " " + b.y;
+    }
 
-   /* alert boxes
-    * ------------------------------------------------------ */
-    const ssAlertBoxes = function() {
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("width", docW);
+    svg.setAttribute("height", docH);
+    svg.setAttribute("viewBox", "0 0 " + docW + " " + docH);
 
-        $('.alert-box').on('click', '.alert-box__close', function() {
-            $(this).parent().fadeOut(500);
-        }); 
+    var ghost = document.createElementNS(NS, "path");
+    ghost.setAttribute("d", d);
+    ghost.setAttribute("class", "route-ghost");
 
-    };
+    var draw = document.createElementNS(NS, "path");
+    draw.setAttribute("d", d);
+    draw.setAttribute("class", "route-draw");
+    draw.style.strokeDasharray = total;
+    draw.style.strokeDashoffset = reduceMotion ? 0 : total;
 
-    
-   /* smooth scrolling
-    * ------------------------------------------------------ */
-    const ssSmoothScroll = function() {
-        
-        $('.smoothscroll').on('click', function (e) {
-            const target = this.hash;
-            const $target = $(target);
-            
-            e.preventDefault();
-            e.stopPropagation();
+    svg.appendChild(ghost);
+    svg.appendChild(draw);
 
-            $('html, body').stop().animate({
-                'scrollTop': $target.offset().top
-            }, cfg.scrollDuration, 'swing').promise().done(function () {
-                window.location.hash = target;
-            });
-        });
+    var dots = [];
+    pts.forEach(function (p) {
+      var dot = document.createElementNS(NS, "rect");
+      dot.setAttribute("x", -5); dot.setAttribute("y", -5);
+      dot.setAttribute("width", 10); dot.setAttribute("height", 10);
+      dot.setAttribute("transform", "translate(" + p.x + " " + p.y + ") rotate(45)");
+      dot.setAttribute("class", "route-dot" + (reduceMotion ? " lit" : ""));
+      dot.dataset.y = p.y;
+      svg.appendChild(dot);
+      dots.push(dot);
+    });
 
-    };
+    layer.innerHTML = "";
+    layer.appendChild(svg);
+    route = { segs: segs, total: total, drawPath: draw, dots: dots };
+    updateRoute();
+  }
 
+  function updateRoute() {
+    if (reduceMotion || !route.drawPath) return;
+    var target = window.scrollY + window.innerHeight * 0.72;
+    var drawn = 0;
+    for (var i = 0; i < route.segs.length; i++) {
+      var s = route.segs[i];
+      if (target >= s.y1) { drawn = s.start + s.len; continue; }
+      if (target > s.y0) drawn = s.start + s.len * ((target - s.y0) / (s.y1 - s.y0));
+      break;
+    }
+    route.drawPath.style.strokeDashoffset = Math.max(route.total - drawn, 0);
+    route.dots.forEach(function (dot) {
+      dot.classList.toggle("lit", Number(dot.dataset.y) <= target);
+    });
+  }
 
-   /* back to top
-    * ------------------------------------------------------ */
-    const ssBackToTop = function() {
-        
-        const pxShow      = 500;
-        const $goTopButton = $(".ss-go-top")
+  var ticking = false;
+  window.addEventListener("scroll", function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { updateRoute(); ticking = false; });
+  }, { passive: true });
 
-        // Show or hide the button
-        if ($(window).scrollTop() >= pxShow) $goTopButton.addClass('link-is-visible');
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(buildRoute, 150);
+  });
 
-        $(window).on('scroll', function() {
-            if ($(window).scrollTop() >= pxShow) {
-                if(!$goTopButton.hasClass('link-is-visible')) $goTopButton.addClass('link-is-visible')
-            } else {
-                $goTopButton.removeClass('link-is-visible')
-            }
-        });
-    };
+  window.addEventListener("load", buildRoute);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildRoute);
+  buildRoute();
 
+  /* ---------- scroll reveals ------------------------------------------ */
 
-   /* ajaxchimp
-    * ------------------------------------------------------ */
-    const ssAjaxChimp = function() {
-            
-        $('#mc-form').ajaxChimp({
-            language: 'es',
-            url: cfg.mailChimpURL
-        });
+  if (!reduceMotion && "IntersectionObserver" in window) {
+    var revealObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("on"); revealObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach(function (el) { revealObs.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("on"); });
+  }
 
-        // Mailchimp translation
-        //
-        //  Defaults:
-        //	 'submit': 'Submitting...',
-        //  0: 'We have sent you a confirmation email',
-        //  1: 'Please enter a value',
-        //  2: 'An email address must contain a single @',
-        //  3: 'The domain portion of the email address is invalid (the portion after the @: )',
-        //  4: 'The username portion of the email address is invalid (the portion before the @: )',
-        //  5: 'This email address looks fake or invalid. Please enter a real email address'
+  /* ---------- stat counters ------------------------------------------- */
 
-        $.ajaxChimp.translations.es = {
-            'submit': 'Submitting...',
-            0: '<i class="fas fa-check"></i> We have sent you a confirmation email',
-            1: '<i class="fas fa-exclamation-triangle"></i> You must enter a valid e-mail address.',
-            2: '<i class="fas fa-exclamation-triangle"></i> E-mail address is not valid.',
-            3: '<i class="fas fa-exclamation-triangle"></i> E-mail address is not valid.',
-            4: '<i class="fas fa-exclamation-triangle"></i> E-mail address is not valid.',
-            5: '<i class="fas fa-exclamation-triangle"></i> E-mail address is not valid.'
-        }
-    };
+  function runCounter(el) {
+    var end = Number(el.dataset.count);
+    var suffix = el.dataset.suffix || "";
+    var t0 = performance.now(), dur = 900;
+    function frame(t) {
+      var p = Math.min((t - t0) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(end * eased).toLocaleString("en-US") + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
 
+  if (!reduceMotion && "IntersectionObserver" in window) {
+    var statObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { runCounter(e.target); statObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.6 });
+    document.querySelectorAll(".stat b[data-count]").forEach(function (el) { statObs.observe(el); });
+  }
 
-   /* initialize
-    * ------------------------------------------------------ */
-    (function ssInit() {
+  /* ---------- nav active-section highlight ---------------------------- */
 
-        ssPreloader();
-        ssPrettyPrint();
-        ssSlickSlider();
-        ssModal();
-        ssFinalCountdown();
-        ssTabs();
-        ssAlertBoxes();
-        ssSmoothScroll();
-        ssBackToTop();
-        ssAjaxChimp();
+  if ("IntersectionObserver" in window) {
+    var links = document.querySelectorAll(".nav-links a");
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+    var navObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var link = byId[e.target.id];
+        if (link) link.classList.toggle("active", e.isIntersecting);
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    ["projects", "about", "contact"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) navObs.observe(el);
+    });
+  }
 
-    })();
+  /* ---------- hero parallax (mouse, desktop only) ---------------------- */
 
-})(jQuery);
+  var hero = document.getElementById("hero");
+  var movers = hero.querySelectorAll("[data-depth]");
+  if (!reduceMotion && window.matchMedia("(pointer: fine)").matches) {
+    hero.addEventListener("mousemove", function (e) {
+      var cx = e.clientX / window.innerWidth - 0.5;
+      var cy = e.clientY / window.innerHeight - 0.5;
+      movers.forEach(function (el) {
+        var depth = Number(el.dataset.depth) || 10;
+        el.style.translate = (cx * -depth) + "px " + (cy * -depth) + "px";
+      });
+    });
+    hero.addEventListener("mouseleave", function () {
+      movers.forEach(function (el) { el.style.translate = "0px 0px"; });
+    });
+  }
+})();
