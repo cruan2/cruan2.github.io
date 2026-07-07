@@ -680,10 +680,10 @@ footer .dim { color: #54636a; margin-top: .5rem; }
   height: 280px;
 }
 .moon-scene canvas { position: absolute; }
-.moon-scene [data-sprite="moon"] { left: 0; top: 0; }
-.sit-lucy    { left: 9%;  bottom: -21px; }   /* hips on the ledge top, legs over the face */
+.moon-scene [data-sprite="moon"] { left: 0; top: 40px; }  /* rising behind the building */
+.sit-lucy    { left: 12%; bottom: -21px; }   /* hips on the ledge top, legs over the face */
 .sit-rebecca { left: 40%; bottom: -20px; }
-.sit-kiwi    { left: 70%; bottom: 0; }       /* sitting cross-legged on top */
+.sit-kiwi    { left: 66%; bottom: 0; }       /* sitting cross-legged on top */
 @media (max-width: 640px) {
   .night-scene { height: 230px; }
   .moon-scene { transform: scale(.72); transform-origin: bottom right; right: 4%; }
