@@ -424,6 +424,8 @@ main { position: relative; z-index: 1; }
 .st-amber   { background: var(--amber); }
 .st-cyan    { background: var(--cyan); }
 .st-magenta { background: var(--magenta); color: #fff; }
+.st-violet  { background: var(--violet); color: #fff; }
+.st-sky     { background: var(--sky); }
 
 .card h3 { font-size: clamp(1.9rem, 4.5vw, 3rem); margin-bottom: .5rem; }
 
@@ -604,28 +606,17 @@ canvas.sprite {
   display: block;
 }
 
-/* crew — influences row */
-.crew { margin-top: 3.2rem; }
-.crew-row {
+/* the squad — quiet easter egg standing on the section edge */
+.squad {
+  position: absolute;
+  right: clamp(1rem, 7vw, 6rem);
+  bottom: 0;
   display: flex;
   align-items: flex-end;
-  gap: clamp(1.2rem, 4vw, 2.6rem);
-  flex-wrap: wrap;
+  gap: 9px;
+  opacity: .92;
 }
-.crew-row figure { text-align: center; }
-.crew-row canvas { margin: 0 auto; }
-.crew-row figcaption {
-  font-size: .6rem;
-  letter-spacing: .16em;
-  color: var(--ink-mute);
-  margin-top: .6rem;
-}
-.crew-note {
-  font-size: .64rem;
-  letter-spacing: .12em;
-  color: var(--ink-mute);
-  margin-top: 1.4rem;
-}
+@media (max-width: 700px) { .squad { display: none; } }
 
 /* ---------- contact ---------------------------------------------------- */
 
@@ -657,8 +648,8 @@ footer .dim { color: #54636a; margin-top: .5rem; }
 .night-scene {
   position: relative;
   max-width: var(--maxw);
-  height: 250px;
-  margin: 0 auto 2.4rem;
+  height: 215px;
+  margin: 0 auto 2.2rem;
 }
 .night-scene .moon {
   position: absolute;
@@ -669,8 +660,8 @@ footer .dim { color: #54636a; margin-top: .5rem; }
   position: absolute;
   right: 4%;
   bottom: 0;
-  width: min(460px, 70%);
-  height: 88px;
+  width: min(430px, 70%);
+  height: 72px;
   background: #161c24;
   border-top: 3px solid #2c3340;
 }
@@ -678,29 +669,20 @@ footer .dim { color: #54636a; margin-top: .5rem; }
 .ledge::after {
   content: "";
   position: absolute;
-  left: 26px; top: 34px;
-  width: 7px; height: 9px;
+  left: 26px; top: 28px;
+  width: 6px; height: 8px;
   background: #d6a93c;
-  box-shadow: 60px 4px 0 #54636a, 130px -2px 0 #2fe0dc, 210px 8px 0 #54636a,
-              290px 2px 0 #ff2e78, 355px 6px 0 #54636a;
-  opacity: .8;
+  box-shadow: 58px 4px 0 #54636a, 124px -2px 0 #2fe0dc, 200px 8px 0 #54636a,
+              272px 2px 0 #ff2e78, 340px 6px 0 #54636a;
+  opacity: .75;
 }
 .ledge canvas { position: absolute; }
-.sit-lucy    { left: 12%;  bottom: 56px; }   /* hip row sits on the ledge top */
-.sit-rebecca { left: 40%;  bottom: 56px; }
-.sit-kiwi    { left: 70%;  bottom: 85px; }   /* cross-legged on top */
-.scene-tag {
-  position: absolute;
-  left: clamp(0px, 10%, 220px);
-  bottom: 6px;
-  font-size: .6rem;
-  letter-spacing: .18em;
-  color: #54636a;
-}
+.sit-lucy    { left: 10%;  bottom: 47px; }   /* hips on the ledge top, legs over the face */
+.sit-rebecca { left: 42%;  bottom: 45px; }
+.sit-kiwi    { left: 72%;  bottom: 69px; }   /* sitting cross-legged on top */
 @media (max-width: 640px) {
-  .night-scene { height: 210px; }
+  .night-scene { height: 190px; }
   .night-scene .moon { transform: scale(.7); transform-origin: top left; }
-  .scene-tag { display: none; }
 }
 
 /* ---------- reveal + motion ------------------------------------------- */
