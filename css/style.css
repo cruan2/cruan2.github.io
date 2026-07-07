@@ -644,17 +644,12 @@ footer {
 footer .end-node { color: #d6a93c; margin-bottom: .9rem; letter-spacing: .3em; }
 footer .dim { color: #54636a; margin-top: .5rem; }
 
-/* the ledge scene — three silhouettes and a moon */
+/* the ledge scene — three silhouettes against a giant moon */
 .night-scene {
   position: relative;
   max-width: var(--maxw);
-  height: 215px;
+  height: 300px;
   margin: 0 auto 2.2rem;
-}
-.night-scene .moon {
-  position: absolute;
-  left: clamp(0px, 10%, 220px);
-  top: 8px;
 }
 .ledge {
   position: absolute;
@@ -662,8 +657,8 @@ footer .dim { color: #54636a; margin-top: .5rem; }
   bottom: 0;
   width: min(430px, 70%);
   height: 72px;
-  background: #161c24;
-  border-top: 3px solid #2c3340;
+  background: #232c3c;   /* moonlit rooftop face */
+  border-top: 3px solid #3b475c;
 }
 /* lit windows on the building face */
 .ledge::after {
@@ -674,15 +669,24 @@ footer .dim { color: #54636a; margin-top: .5rem; }
   background: #d6a93c;
   box-shadow: 58px 4px 0 #54636a, 124px -2px 0 #2fe0dc, 200px 8px 0 #54636a,
               272px 2px 0 #ff2e78, 340px 6px 0 #54636a;
-  opacity: .75;
+  opacity: .6;
 }
-.ledge canvas { position: absolute; }
-.sit-lucy    { left: 10%;  bottom: 47px; }   /* hips on the ledge top, legs over the face */
-.sit-rebecca { left: 42%;  bottom: 45px; }
-.sit-kiwi    { left: 72%;  bottom: 69px; }   /* sitting cross-legged on top */
+/* moon + trio move as one composition, seated on the ledge top */
+.moon-scene {
+  position: absolute;
+  right: 11%;
+  bottom: 69px;          /* = ledge top */
+  width: 280px;
+  height: 280px;
+}
+.moon-scene canvas { position: absolute; }
+.moon-scene [data-sprite="moon"] { left: 0; top: 0; }
+.sit-lucy    { left: 9%;  bottom: -21px; }   /* hips on the ledge top, legs over the face */
+.sit-rebecca { left: 40%; bottom: -20px; }
+.sit-kiwi    { left: 70%; bottom: 0; }       /* sitting cross-legged on top */
 @media (max-width: 640px) {
-  .night-scene { height: 190px; }
-  .night-scene .moon { transform: scale(.7); transform-origin: top left; }
+  .night-scene { height: 230px; }
+  .moon-scene { transform: scale(.72); transform-origin: bottom right; right: 4%; }
 }
 
 /* ---------- reveal + motion ------------------------------------------- */
