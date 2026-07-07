@@ -11,6 +11,9 @@ Plain HTML/CSS/JS, no build step, no frameworks. Push to `main` and GitHub Pages
 - The gold line that draws down the page as you scroll is the wayfinding/runner-vision motif —
   built in `js/main.js` from the invisible `.route-node` markers in `index.html`.
 - Light theme is the daylight city; the toggle (or OS dark mode) switches to the night city.
+- The pixel characters (Faith on the ticker, the squad above the about section, the trio on
+  the footer ledge) are original homage sprites defined as pixel maps in `js/sprites.js` —
+  edit the row strings / palettes there, or delete a `<canvas class="sprite">` to remove one.
 
 ## Editing
 
